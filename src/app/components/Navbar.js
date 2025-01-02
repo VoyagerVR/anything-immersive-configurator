@@ -1,5 +1,4 @@
 'use client';
-
 import Image from 'next/image';
 
 export default function Navbar() {
@@ -8,10 +7,13 @@ export default function Navbar() {
   };
 
   return (
-    <div className="navbar-outer">
-      <div className="navbar-container" onClick={handleLogoClick}>
-        <Image src="/logo.png" alt="Logo" width={60} height={60} />
-        <span className="font-bold text-xl ml-2 cursor-pointer">
+    <div className="navbar-box">
+      <div
+        className="cursor-pointer flex items-center gap-3"
+        onClick={handleLogoClick}
+      >
+        <Image src="/logo.png" alt="Logo" width={50} height={50} />
+        <span className="font-bold text-xl">
           Anything Immersive Configurator
         </span>
       </div>

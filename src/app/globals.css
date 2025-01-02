@@ -2,9 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 1) Accent color variable */
+/* 1) Accent color var */
 :root {
-  --accent: #ff9500; /* Example orange accent */
+  --accent: #ff9500;
 }
 
 @layer utilities {
@@ -19,66 +19,79 @@
   }
 }
 
-/* Body: no scroll, dark background (#121212). */
+/* Body: no scroll, entire viewport. */
 html, body {
   @apply overflow-hidden h-screen bg-[#121212] text-[#f0f0f0] m-0 p-0;
 }
 
-/* 
-   NAVBAR: "navbar-outer" is fixed, top-centered. 
-   "navbar-container" is the curved box with minimal margin. 
+/* The "floating" navbar box: same width as container, black, curved corners. */
+.navbar-box {
+  @apply mx-auto mt-8 w-[95%] max-w-[1400px] h-16 bg-black rounded-2xl
+    flex items-center px-4 gap-3;
+  /* 
+     height: 64px (16 => 4rem). 
+     margin-top: 2rem so it floats from top. 
+     center horizontally with mx-auto. 
+  */
+}
+
+/* main-content => everything below the floating navbar box. 
+   We do: top margin so it sits below the navbar card, 
+   then fill the leftover screen height. 
 */
-.navbar-outer {
-  @apply fixed top-0 left-0 w-full z-50 flex justify-center;
-  height: 70px; /* approx 4.375rem, adjust as needed */
-}
-.navbar-container {
-  @apply w-[95%] max-w-[1400px] mt-2 mx-auto bg-[#1E1E1E] rounded-2xl flex items-center px-4;
-  height: 100%; 
-}
-
-/* main-content => everything below the navbar, offset ~80px. */
+/* First, ensure the main content area has proper height and doesn't squeeze */
 .main-content {
-  @apply pt-[80px] h-[calc(100%-80px)];
+  @apply w-full;
+  height: calc(100vh - 10rem);
+  @apply flex justify-center;
 }
 
-/* The "curved box" container => the main area for desktop+mobile layouts. */
+/* The app container should maintain its width */
 .app-container {
-  @apply mx-auto my-2 w-[95%] max-w-[1400px] 
-    h-[calc(100%-2rem)] rounded-2xl bg-[#1E1E1E] overflow-hidden
+  @apply w-[95%] max-w-[1400px] h-full bg-[#1E1E1E] rounded-2xl 
     flex flex-col;
 }
 
-/* Desktop layout => side-by-side. p-4 gap-4 for spacing. hidden on mobile. */
+/* Desktop layout should use flex-row and maintain full width */
 .desktop-layout {
-  @apply hidden md:flex w-full h-full p-4 gap-4;
+  @apply hidden md:flex flex-row h-full p-4 gap-4;
 }
 
-/* Left panel => summary. We give it a different background (#2A2A2A), 
-   curved corners, internal scrolling. */
+/* Panels should maintain width using flex-basis or min-width */
+.left-panel, .right-panel {
+  @apply flex flex-col rounded-xl bg-[#2A2A2A];
+  min-width: 0; /* Allows panel to shrink if needed */
+}
+
+/* Left panel should have a fixed width */
 .left-panel {
-  @apply flex-1 h-full flex flex-col overflow-hidden rounded-xl bg-[#2A2A2A];
+  @apply w-[400px]; /* Or whatever fixed width you prefer */
 }
-.left-panel-scroll {
+
+/* Right panel should take remaining space */
+.right-panel {
+  @apply flex-1;
+}
+
+/* Scroll areas should maintain their parent's width */
+.panel-scroll-area {
   @apply flex-1 overflow-y-auto px-6 py-4;
+  min-height: 0; /* Forces scroll within flex container */
 }
+
+/* pinned footer at bottom of left panel for tier/price. */
 .left-panel-footer {
   @apply flex items-center justify-between px-6 py-3 border-t border-gray-700;
 }
 
-/* Right panel => questions. */
-.right-panel {
-  @apply flex-1 h-full flex flex-col overflow-y-auto 
-    rounded-xl bg-[#2A2A2A] px-6 py-4;
+/* Mobile layout container */
+.mobile-layout {
+  @apply flex flex-col md:hidden h-full p-4 gap-3;
 }
 
-/* Mobile layout => stacked, displayed only < md. p-4 gap-3 => minimal space. */
-.mobile-layout {
-  @apply flex flex-col md:hidden w-full h-full p-4 gap-3;
-}
+/* Mobile tab bar should stay fixed at top */
 .mobile-tabs {
-  @apply flex items-center justify-evenly bg-black text-white 
-    rounded-xl p-1;
+  @apply flex items-center justify-evenly rounded-xl p-1 bg-black mb-3;
 }
 .mobile-tab {
   @apply flex-1 text-center py-2 cursor-pointer rounded-md;
@@ -86,14 +99,18 @@ html, body {
 .mobile-tab.active {
   @apply bg-accent text-black;
 }
+/* Mobile view container needs to take remaining height */
 .mobile-view {
   @apply flex-1 overflow-hidden rounded-xl bg-[#2A2A2A];
+  min-height: 0; /* Forces proper flex behavior */
 }
+/* Mobile content scroll area */
 .mobile-content-scroll {
-  @apply w-full h-full overflow-y-auto px-6 py-4;
+  @apply h-full overflow-y-auto px-6 py-4;
+  min-height: 0; /* Forces scroll within flex container */
 }
 
-/* Big toggles & choices.  */
+/* Buttons, sub-question, section-block, summary items, etc. remain the same. */
 .big-button {
   @apply inline-block px-4 py-3 rounded-md cursor-pointer text-center
     border border-transparent transition-colors duration-200 ease-in-out
@@ -109,14 +126,11 @@ html, body {
   @apply bg-[#ffa733];
 }
 
-/* Sub-question indentation. */
 .sub-question {
   @apply ml-6 pl-4 border-l border-gray-600 mt-3;
 }
-
-/* Section spacing in questions. */
 .section-block {
-  @apply mb-8;
+  @apply mb-8 pb-6 border-b border-black;
 }
 .section-title {
   @apply mb-3 font-bold text-lg text-accent;
@@ -136,7 +150,6 @@ html, body {
   @apply font-semibold text-sm;
 }
 
-/* Commission list => spaced from rest. */
 .commission-list {
   @apply mt-4 p-2 border-t border-gray-600;
 }
