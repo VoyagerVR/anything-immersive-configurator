@@ -1,5 +1,5 @@
 {
-  "name": "anything-immersive-calculator",
+  "name": "anything-immersive-configurator",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -16,6 +16,7 @@
     "react-icons": "^5.4.0"
   },
   "devDependencies": {
+    "autoprefixer": "^10.4.14",
     "@eslint/eslintrc": "^3",
     "eslint": "^9",
     "eslint-config-next": "15.1.3",

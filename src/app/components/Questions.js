@@ -1,4 +1,3 @@
-// src/app/components/Questions.js
 'use client';
 
 function BigButton({ label, active, onClick }) {
@@ -14,7 +13,7 @@ function BigButton({ label, active, onClick }) {
 
 function YesNoToggle({ label, value, onChange }) {
   return (
-    <div className="mb-2">
+    <div className="mb-3">
       <p>{label}</p>
       <div className="flex gap-2 mt-1">
         <BigButton
@@ -38,19 +37,22 @@ export default function Questions({ answers, updateAnswer }) {
     if (choice === 'AR') {
       updateAnswer('vrChoice', '');
       updateAnswer('canProvideVrAssets', true);
-    } else {
+      updateAnswer('qrOrImage', '');
+      updateAnswer('trackRealWorld', false);
+    } else if (choice === 'VR') {
       updateAnswer('qrOrImage', '');
       updateAnswer('trackRealWorld', false);
       updateAnswer('canProvideArAssets', true);
+      updateAnswer('vrChoice', '');
     }
   };
 
   return (
     <div className="space-y-8 text-sm">
-      {/* ---------- SECTION 1: AR or VR ---------- */}
-      <div>
+      {/* SECTION 1 */}
+      <div className="section-block">
         <h2 className="section-title">Section 1: AR or VR</h2>
-        <p>Required:</p>
+        <p className="mb-2">Required:</p>
         <div className="flex gap-2 mt-1">
           <BigButton
             label="AR"
@@ -64,7 +66,6 @@ export default function Questions({ answers, updateAnswer }) {
           />
         </div>
 
-        {/* If AR */}
         {answers.arOrVr === 'AR' && (
           <div className="sub-question">
             <YesNoToggle
@@ -101,7 +102,6 @@ export default function Questions({ answers, updateAnswer }) {
           </div>
         )}
 
-        {/* If VR */}
         {answers.arOrVr === 'VR' && (
           <div className="sub-question">
             <p>Do you want 360 video or 3D world?</p>
@@ -128,8 +128,8 @@ export default function Questions({ answers, updateAnswer }) {
         )}
       </div>
 
-      {/* ---------- SECTION 2: 3D Assets ---------- */}
-      <div>
+      {/* SECTION 2 */}
+      <div className="section-block">
         <h2 className="section-title">Section 2: 3D Assets</h2>
         <YesNoToggle
           label="Are 3D assets to be used in the experience?"
@@ -149,8 +149,8 @@ export default function Questions({ answers, updateAnswer }) {
         )}
       </div>
 
-      {/* ---------- SECTION 3: Animated Characters ---------- */}
-      <div>
+      {/* SECTION 3 */}
+      <div className="section-block">
         <h2 className="section-title">
           Section 3: Animated Characters
         </h2>
@@ -177,8 +177,8 @@ export default function Questions({ answers, updateAnswer }) {
         )}
       </div>
 
-      {/* ---------- SECTION 4: Timeline ---------- */}
-      <div>
+      {/* SECTION 4 */}
+      <div className="section-block">
         <h2 className="section-title">Section 4: Timeline</h2>
         <YesNoToggle
           label="Is the experience animated over time?"
@@ -187,8 +187,8 @@ export default function Questions({ answers, updateAnswer }) {
         />
       </div>
 
-      {/* ---------- SECTION 5: 2D Content ---------- */}
-      <div>
+      {/* SECTION 5 */}
+      <div className="section-block">
         <h2 className="section-title">Section 5: 2D Content</h2>
         <YesNoToggle
           label="Will 2D content (text, images, videos) be provided?"
@@ -197,8 +197,8 @@ export default function Questions({ answers, updateAnswer }) {
         />
       </div>
 
-      {/* ---------- SECTION 6: Integrations (Tier 3) ---------- */}
-      <div>
+      {/* SECTION 6 */}
+      <div className="section-block">
         <h2 className="section-title">Section 6: Integrations</h2>
         <YesNoToggle
           label="Does the experience integrate with other systems (e.g., ChatGPT)?"
@@ -207,8 +207,8 @@ export default function Questions({ answers, updateAnswer }) {
         />
       </div>
 
-      {/* ---------- SECTION 7: Interaction (Tier 3) ---------- */}
-      <div>
+      {/* SECTION 7 */}
+      <div className="section-block">
         <h2 className="section-title">Section 7: Interaction</h2>
         <YesNoToggle
           label="Does it require complex interaction (objects respond to clicks, user position, etc.)?"
@@ -217,8 +217,8 @@ export default function Questions({ answers, updateAnswer }) {
         />
       </div>
 
-      {/* ---------- SECTION 8: Gamification (Tier 3) ---------- */}
-      <div>
+      {/* SECTION 8 */}
+      <div className="section-block">
         <h2 className="section-title">Section 8: Gamification</h2>
         <YesNoToggle
           label="Does it have a gamification element (score, click targets)?"
@@ -236,11 +236,11 @@ export default function Questions({ answers, updateAnswer }) {
         )}
       </div>
 
-      {/* ---------- SECTION 9: Entry Point ---------- */}
-      <div>
+      {/* SECTION 9 */}
+      <div className="section-block">
         <h2 className="section-title">Section 9: Entry Point</h2>
         <p>Choose any that apply (None, QR, NFC):</p>
-        <div className="flex gap-2 mt-1 flex-wrap">
+        <div className="flex gap-2 mt-2 flex-wrap">
           <BigButton
             label="None"
             active={answers.entryPoint.includes('None')}
@@ -282,7 +282,6 @@ export default function Questions({ answers, updateAnswer }) {
           />
         </div>
 
-        {/* If NFC => sub-question for tag type */}
         {answers.entryPoint.includes('NFC') && (
           <div className="sub-question">
             <p>Which NFC Tag type?</p>
