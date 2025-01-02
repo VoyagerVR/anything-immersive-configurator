@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Questions from './components/Questions';
 import Summary from './components/Summary';
 import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import tierPrices from '../../public/pricing.json';
 
 export default function HomePage() {
@@ -13,6 +14,7 @@ export default function HomePage() {
     trackRealWorld: null,
     qrOrImage: '',
     canProvideArAssets: null,
+    canProvideTrackingImages: null,
     vrChoice: '',
     canProvideVrAssets: null,
     use3DAssets: null,
@@ -55,13 +57,333 @@ export default function HomePage() {
     setAnswers((prev) => ({ ...prev, [key]: value }));
   }
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async ({ answers, tier, price }) => {
     const doc = new jsPDF({
       orientation: 'p',
       unit: 'pt',
       format: 'a4',
     });
-    doc.text(`Tier ${tier}, Starting at $${price}`, 20, 30);
+
+    try {
+      // Load logo using fetch
+      const logoResponse = await fetch('/logo.png');
+      const logoBlob = await logoResponse.blob();
+      const base64Logo = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+        reader.readAsDataURL(logoBlob);
+      });
+
+      // Add black banner
+      doc.setFillColor(0, 0, 0);
+      doc.rect(0, 0, doc.internal.pageSize.width, 100, 'F');
+
+      // Add logo to the right corner of banner with padding
+      doc.addImage(
+        `data:image/png;base64,${base64Logo}`,
+        'PNG',
+        doc.internal.pageSize.width - 160,
+        20,
+        120,
+        60
+      );
+
+      // Add title in white within banner
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(24);
+      doc.text('Immersive Experience Summary', 40, 60);
+
+      // Reset text color to black for content
+      doc.setTextColor(0, 0, 0);
+      let startY = 140;
+
+      // Prepare features data for table
+      const featuresData = [];
+
+      if (answers.arOrVr) featuresData.push(['Type', answers.arOrVr]);
+      if (answers.arOrVr === 'AR' && answers.trackRealWorld) {
+        featuresData.push(['Track Real World Object', 'Yes']);
+        if (answers.qrOrImage)
+          featuresData.push(['AR Method', answers.qrOrImage]);
+      }
+      if (answers.arOrVr === 'VR' && answers.vrChoice) {
+        featuresData.push(['VR Content', answers.vrChoice]);
+      }
+      if (answers.use3DAssets)
+        featuresData.push(['3D Assets', 'Yes']);
+      if (answers.animatedChars) {
+        featuresData.push(['Animated Characters', 'Yes']);
+        if (answers.hasDialogue)
+          featuresData.push(['Character Dialogue', 'Yes']);
+      }
+      if (answers.animatedOverTime)
+        featuresData.push(['Animated Over Time', 'Yes']);
+      if (answers.twoDContent)
+        featuresData.push(['2D Content', 'Yes']);
+      if (answers.integrations)
+        featuresData.push(['Integrations', 'Yes']);
+      if (answers.complexInteraction)
+        featuresData.push(['Complex Interaction', 'Yes']);
+      if (answers.gamification) {
+        featuresData.push(['Gamification', 'Yes']);
+        if (answers.trackUserData)
+          featuresData.push(['Track User Data', 'Yes']);
+      }
+      if (answers.entryPoint?.length > 0) {
+        featuresData.push([
+          'Entry Point',
+          answers.entryPoint.join(', '),
+        ]);
+        if (
+          answers.entryPoint.includes('NFC') &&
+          answers.nfcTagType
+        ) {
+          featuresData.push(['NFC Tag Type', answers.nfcTagType]);
+        }
+      }
+
+      // Add features table
+      doc.autoTable({
+        startY: startY,
+        head: [['Feature', 'Details']],
+        body: featuresData,
+        headStyles: {
+          fillColor: [255, 140, 0],
+          textColor: [255, 255, 255],
+          fontSize: 12,
+          fontStyle: 'bold',
+        },
+        styles: {
+          fontSize: 11,
+          cellPadding: 5,
+        },
+        margin: { left: 40, right: 40 },
+        theme: 'grid',
+      });
+
+      // Prepare commissioned items data
+      const commissionItems = [];
+      if (
+        answers.arOrVr === 'AR' &&
+        answers.trackRealWorld === true &&
+        answers.qrOrImage === 'Images' &&
+        answers.canProvideTrackingImages === false
+      ) {
+        commissionItems.push(['Tracking images for AR']);
+      }
+      if (
+        answers.arOrVr === 'AR' &&
+        answers.trackRealWorld === true &&
+        answers.canProvideArAssets === false
+      ) {
+        commissionItems.push(['AR tracking assets']);
+      }
+      if (
+        answers.arOrVr === 'VR' &&
+        answers.canProvideVrAssets === false
+      ) {
+        commissionItems.push(['VR environment assets']);
+      }
+      if (
+        answers.use3DAssets === true &&
+        answers.canProvide3DAssets === false
+      ) {
+        commissionItems.push(['3D Assets']);
+      }
+      if (
+        answers.animatedChars === true &&
+        answers.canProvideCharAssets === false
+      ) {
+        commissionItems.push(['Character 3D Assets']);
+      }
+
+      // Add commissioned items table if there are items
+      if (commissionItems.length > 0) {
+        doc.autoTable({
+          startY: doc.lastAutoTable.finalY + 30,
+          head: [['Items to be Commissioned']],
+          body: commissionItems,
+          headStyles: {
+            fillColor: [255, 140, 0],
+            textColor: [255, 255, 255],
+            fontSize: 12,
+            fontStyle: 'bold',
+          },
+          styles: {
+            fontSize: 11,
+            cellPadding: 5,
+          },
+          margin: { left: 40, right: 40 },
+          theme: 'grid',
+        });
+      }
+
+      // Add tier and price at bottom with some padding
+      const finalY = doc.lastAutoTable.finalY + 50;
+
+      doc.setFontSize(24);
+      doc.setFont(undefined, 'bold');
+      doc.text(`Tier ${tier}`, 40, finalY);
+
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Starting at: $${price}`, 40, finalY + 30);
+
+      doc.save('immersive-summary.pdf');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      handleExportPDFWithoutLogo({ answers, tier, price });
+    }
+  };
+
+  // Fallback function for when logo loading fails
+  const handleExportPDFWithoutLogo = ({ answers, tier, price }) => {
+    const doc = new jsPDF({
+      orientation: 'p',
+      unit: 'pt',
+      format: 'a4',
+    });
+
+    // Add black banner without logo
+    doc.setFillColor(0, 0, 0);
+    doc.rect(0, 0, doc.internal.pageSize.width, 100, 'F');
+
+    // Add title in white within banner
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.text('Immersive Experience Summary', 40, 60);
+
+    // Reset text color to black for content
+    doc.setTextColor(0, 0, 0);
+    let startY = 140;
+
+    // Prepare features data for table
+    const featuresData = [];
+
+    if (answers.arOrVr) featuresData.push(['Type', answers.arOrVr]);
+    if (answers.arOrVr === 'AR' && answers.trackRealWorld) {
+      featuresData.push(['Track Real World Object', 'Yes']);
+      if (answers.qrOrImage)
+        featuresData.push(['AR Method', answers.qrOrImage]);
+    }
+    if (answers.arOrVr === 'VR' && answers.vrChoice) {
+      featuresData.push(['VR Content', answers.vrChoice]);
+    }
+    if (answers.use3DAssets) featuresData.push(['3D Assets', 'Yes']);
+    if (answers.animatedChars) {
+      featuresData.push(['Animated Characters', 'Yes']);
+      if (answers.hasDialogue)
+        featuresData.push(['Character Dialogue', 'Yes']);
+    }
+    if (answers.animatedOverTime)
+      featuresData.push(['Animated Over Time', 'Yes']);
+    if (answers.twoDContent) featuresData.push(['2D Content', 'Yes']);
+    if (answers.integrations)
+      featuresData.push(['Integrations', 'Yes']);
+    if (answers.complexInteraction)
+      featuresData.push(['Complex Interaction', 'Yes']);
+    if (answers.gamification) {
+      featuresData.push(['Gamification', 'Yes']);
+      if (answers.trackUserData)
+        featuresData.push(['Track User Data', 'Yes']);
+    }
+    if (answers.entryPoint?.length > 0) {
+      featuresData.push([
+        'Entry Point',
+        answers.entryPoint.join(', '),
+      ]);
+      if (answers.entryPoint.includes('NFC') && answers.nfcTagType) {
+        featuresData.push(['NFC Tag Type', answers.nfcTagType]);
+      }
+    }
+
+    // Add features table
+    doc.autoTable({
+      startY: startY,
+      head: [['Feature', 'Details']],
+      body: featuresData,
+      headStyles: {
+        fillColor: [255, 140, 0],
+        textColor: [255, 255, 255],
+        fontSize: 12,
+        fontStyle: 'bold',
+      },
+      styles: {
+        fontSize: 11,
+        cellPadding: 5,
+      },
+      margin: { left: 40, right: 40 },
+      theme: 'grid',
+    });
+
+    // Prepare commissioned items data
+    const commissionItems = [];
+    if (
+      answers.arOrVr === 'AR' &&
+      answers.trackRealWorld === true &&
+      answers.qrOrImage === 'Images' &&
+      answers.canProvideTrackingImages === false
+    ) {
+      commissionItems.push(['Tracking images for AR']);
+    }
+    if (
+      answers.arOrVr === 'AR' &&
+      answers.trackRealWorld === true &&
+      answers.canProvideArAssets === false
+    ) {
+      commissionItems.push(['AR tracking assets']);
+    }
+    if (
+      answers.arOrVr === 'VR' &&
+      answers.canProvideVrAssets === false
+    ) {
+      commissionItems.push(['VR environment assets']);
+    }
+    if (
+      answers.use3DAssets === true &&
+      answers.canProvide3DAssets === false
+    ) {
+      commissionItems.push(['3D Assets']);
+    }
+    if (
+      answers.animatedChars === true &&
+      answers.canProvideCharAssets === false
+    ) {
+      commissionItems.push(['Character 3D Assets']);
+    }
+
+    // Add commissioned items table if there are items
+    if (commissionItems.length > 0) {
+      doc.autoTable({
+        startY: doc.lastAutoTable.finalY + 30,
+        head: [['Items to be Commissioned']],
+        body: commissionItems,
+        headStyles: {
+          fillColor: [255, 140, 0],
+          textColor: [255, 255, 255],
+          fontSize: 12,
+          fontStyle: 'bold',
+        },
+        styles: {
+          fontSize: 11,
+          cellPadding: 5,
+        },
+        margin: { left: 40, right: 40 },
+        theme: 'grid',
+      });
+    }
+
+    // Add tier and price at bottom with some padding
+    const finalY = doc.lastAutoTable.finalY + 50;
+
+    doc.setFontSize(24);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Tier ${tier}`, 40, finalY);
+
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Starting at: $${price}`, 40, finalY + 30);
+
     doc.save('immersive-summary.pdf');
   };
 
@@ -87,7 +409,9 @@ export default function HomePage() {
                 </div>
                 <button
                   className="px-4 py-2 bg-accent text-black rounded font-semibold"
-                  onClick={handleExportPDF}
+                  onClick={() =>
+                    handleExportPDF({ answers, tier, price })
+                  }
                 >
                   Export as PDF
                 </button>
@@ -148,7 +472,9 @@ export default function HomePage() {
                     </div>
                     <button
                       className="px-4 py-2 bg-accent text-black rounded font-semibold"
-                      onClick={handleExportPDF}
+                      onClick={() =>
+                        handleExportPDF({ answers, tier, price })
+                      }
                     >
                       Export as PDF
                     </button>

@@ -119,6 +119,17 @@ export default function Questions({ answers, updateAnswer }) {
                     }
                   />
                 </div>
+                {answers.qrOrImage === 'Images' && (
+                  <div className="sub-question">
+                    <YesNoToggle
+                      label="Can you provide the tracking images?"
+                      value={answers.canProvideTrackingImages}
+                      onChange={(val) =>
+                        updateAnswer('canProvideTrackingImages', val)
+                      }
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>

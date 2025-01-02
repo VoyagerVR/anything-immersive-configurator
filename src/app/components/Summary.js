@@ -7,9 +7,17 @@ export default function Summary({ answers }) {
   if (
     answers.arOrVr === 'AR' &&
     answers.trackRealWorld === true &&
-    answers.canProvideArAssets === false
+    answers.canProvideAssets === false
   ) {
     commissionItems.push('AR tracking assets');
+  }
+  if (
+    answers.arOrVr === 'AR' &&
+    answers.trackRealWorld === true &&
+    answers.qrOrImage === 'Images' &&
+    answers.canProvideTrackingImages === false
+  ) {
+    commissionItems.push('Tracking images for AR');
   }
   if (
     answers.arOrVr === 'VR' &&
@@ -52,12 +60,10 @@ export default function Summary({ answers }) {
       {answers.animatedOverTime === true &&
         renderYes('Animated Over Time')}
       {answers.twoDContent === true && renderYes('2D Content')}
-      {answers.integrations === true &&
-        renderYes('Integrations (Tier 3)')}
+      {answers.integrations === true && renderYes('Integrations')}
       {answers.complexInteraction === true &&
-        renderYes('Complex Interaction (Tier 3)')}
-      {answers.gamification === true &&
-        renderYes('Gamification (Tier 3)')}
+        renderYes('Complex Interaction')}
+      {answers.gamification === true && renderYes('Gamification')}
       {answers.gamification === true &&
         answers.trackUserData === true &&
         renderYes('Track User Data')}
