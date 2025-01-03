@@ -458,7 +458,12 @@ export default function HomePage() {
           </div>
 
           {/* Mobile layout => tab-based */}
-          <div className="mobile-layout">
+          <div
+            className="mobile-layout"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
             <div className="mobile-tabs">
               <div
                 className={`mobile-tab ${
