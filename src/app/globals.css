@@ -90,6 +90,9 @@ html, body {
 /* Mobile layout container */
 .mobile-layout {
   @apply flex flex-col md:hidden h-full p-4;
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y; /* Enable vertical scrolling while allowing horizontal swipes */
 }
 
 /* Mobile tab bar should stay fixed at top */
@@ -106,11 +109,24 @@ html, body {
 .mobile-view {
   @apply flex-1 overflow-hidden rounded-xl bg-[#2A2A2A];
   min-height: 0; /* Forces proper flex behavior */
+  touch-action: pan-y pinch-zoom; /* Allow vertical scrolling and pinch zoom */
 }
 /* Mobile content scroll area */
 .mobile-content-scroll {
   @apply h-full overflow-y-auto px-6 py-4;
   min-height: 0; /* Forces scroll within flex container */
+  transition: opacity 0.2s ease-in-out;
+}
+
+.swipe-hint::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 40px;
+  background: rgba(255, 149, 0, 0.3);
+  border-radius: 2px;
 }
 
 /* Buttons, sub-question, section-block, summary items, etc. remain the same. */
