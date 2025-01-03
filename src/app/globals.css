@@ -21,16 +21,16 @@
 
 /* Body: no scroll, entire viewport. */
 html, body {
-  @apply overflow-hidden h-screen bg-[#121212] text-[#f0f0f0] m-0 p-0;
+  @apply overflow-hidden h-screen text-[#f0f0f0] m-0 p-0;
   height: 100vh; /* Fallback */
   height: 100dvh; /* Modern browsers will use this */
+  background: linear-gradient(to bottom, #121212, #0a0a0a);
 }
 
 /* The "floating" navbar box: same width as container, black, curved corners. */
 .navbar-box {
-  @apply mx-auto mt-8 w-[95%] max-w-[1400px] h-16 bg-black rounded-2xl
+  @apply mx-auto mt-2 mb-2 w-[95%] max-w-[1400px] h-16 bg-black rounded-2xl
     flex items-center px-4 gap-4;
-    margin-bottom: 1rem;
   /* 
      height: 64px (16 => 4rem). 
      margin-top: 2rem so it floats from top. 
@@ -45,11 +45,10 @@ html, body {
 /* First, ensure the main content area has proper height and doesn't squeeze */
 .main-content {
   @apply w-full;
-  height: calc(100vh - 10rem); /* Fallback */
-  height: calc(100dvh - 10rem); /* Modern browsers will use this */
+  height: calc(100vh - 6rem); /* Fallback */
+  height: calc(100dvh - 6rem); /* Modern browsers will use this */
   @apply flex justify-center;
 }
-
 /* The app container should maintain its width */
 .app-container {
   @apply w-[95%] max-w-[1400px] h-full bg-[#1E1E1E] rounded-2xl 

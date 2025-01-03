@@ -456,6 +456,7 @@ export default function HomePage() {
                   <Questions
                     answers={answers}
                     updateAnswer={updateAnswer}
+                    setActivePanel={setActivePanel}
                   />
                 </div>
               )}

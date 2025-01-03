@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+
 function BigButton({ label, active, onClick }) {
   return (
     <div
@@ -11,7 +13,6 @@ function BigButton({ label, active, onClick }) {
   );
 }
 
-/** A yes/no toggle that sets a boolean or null. */
 function YesNoToggle({ label, value, onChange }) {
   return (
     <div className="mb-3">
@@ -32,19 +33,10 @@ function YesNoToggle({ label, value, onChange }) {
   );
 }
 
-/**
- * Progressive disclosure logic:
- * - Only show Section 2 if Section 1 is answered
- * - Only show Section 3 if Section 2 is answered
- * - ...
- * We'll define small helper functions for each top-level question.
- */
 function isSection1Answered(answers) {
-  // "Section 1" is answered if answers.arOrVr !== ''
   return answers.arOrVr !== '';
 }
 function isSection2Answered(answers) {
-  // if "use3DAssets" is null => not answered. If true/false => answered
   return answers.use3DAssets !== null;
 }
 function isSection3Answered(answers) {
@@ -65,18 +57,62 @@ function isSection7Answered(answers) {
 function isSection8Answered(answers) {
   return answers.gamification !== null;
 }
-// Section 9 we always show if Section 8 is answered?
 
-export default function Questions({ answers, updateAnswer }) {
-  // For AR/VR choice:
+export default function Questions({
+  answers,
+  updateAnswer,
+  setActivePanel,
+}) {
+  const sectionRefs = useRef({});
+
+  useEffect(() => {
+    // Find the first unanswered section
+    let nextSection;
+    if (!isSection1Answered(answers)) nextSection = 'section1';
+    else if (!isSection2Answered(answers)) nextSection = 'section2';
+    else if (!isSection3Answered(answers)) nextSection = 'section3';
+    else if (!isSection4Answered(answers)) nextSection = 'section4';
+    else if (!isSection5Answered(answers)) nextSection = 'section5';
+    else if (!isSection6Answered(answers)) nextSection = 'section6';
+    else if (!isSection7Answered(answers)) nextSection = 'section7';
+    else if (!isSection8Answered(answers)) nextSection = 'section8';
+    else if (answers.gamification && !answers.trackUserData)
+      nextSection = 'section9';
+
+    // Scroll to the next unanswered section if it exists
+    if (nextSection && sectionRefs.current[nextSection]) {
+      sectionRefs.current[nextSection].scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
+    }
+  }, [answers]);
+
   const handleArVrChoice = (choice) => {
     updateAnswer('arOrVr', choice);
   };
 
+  // Helper function to check if all questions are answered
+  const areAllQuestionsAnswered = () => {
+    return (
+      isSection8Answered(answers) && // Check through Section 8
+      // If gamification is true, check trackUserData
+      (answers.gamification === false ||
+        answers.trackUserData !== null) &&
+      // Check entry point
+      answers.entryPoint.length > 0 &&
+      // If NFC is selected, check tag type
+      (!answers.entryPoint.includes('NFC') ||
+        answers.nfcTagType !== '')
+    );
+  };
+
   return (
     <div className="space-y-8 text-sm">
-      {/* SECTION 1 */}
-      <div className="section-block">
+      <div
+        className="section-block"
+        ref={(el) => (sectionRefs.current.section1 = el)}
+      >
         <h2 className="section-title">Section 1: AR or VR</h2>
         <p className="mb-2">
           Decide whether your experience is totally virtual, or uses
@@ -136,9 +172,11 @@ export default function Questions({ answers, updateAnswer }) {
         )}
       </div>
 
-      {/* SECTION 2 => only if Section 1 is answered */}
       {isSection1Answered(answers) && (
-        <div className="section-block">
+        <div
+          className="section-block"
+          ref={(el) => (sectionRefs.current.section2 = el)}
+        >
           <h2 className="section-title">Section 2: 3D Assets</h2>
           <YesNoToggle
             label="Are 3D assets to be used in the experience?"
@@ -159,9 +197,11 @@ export default function Questions({ answers, updateAnswer }) {
         </div>
       )}
 
-      {/* SECTION 3 => only if Section 2 is answered */}
       {isSection2Answered(answers) && (
-        <div className="section-block">
+        <div
+          className="section-block"
+          ref={(el) => (sectionRefs.current.section3 = el)}
+        >
           <h2 className="section-title">
             Section 3: Animated Characters
           </h2>
@@ -189,9 +229,11 @@ export default function Questions({ answers, updateAnswer }) {
         </div>
       )}
 
-      {/* SECTION 4 => only if Section 3 answered */}
       {isSection3Answered(answers) && (
-        <div className="section-block">
+        <div
+          className="section-block"
+          ref={(el) => (sectionRefs.current.section4 = el)}
+        >
           <h2 className="section-title">Section 4: Timeline</h2>
           <YesNoToggle
             label="Is the experience animated over time?"
@@ -201,9 +243,11 @@ export default function Questions({ answers, updateAnswer }) {
         </div>
       )}
 
-      {/* SECTION 5 => only if Section 4 answered */}
       {isSection4Answered(answers) && (
-        <div className="section-block">
+        <div
+          className="section-block"
+          ref={(el) => (sectionRefs.current.section5 = el)}
+        >
           <h2 className="section-title">Section 5: 2D Content</h2>
           <YesNoToggle
             label="Will 2D content (text, images, videos) be provided?"
@@ -213,9 +257,11 @@ export default function Questions({ answers, updateAnswer }) {
         </div>
       )}
 
-      {/* SECTION 6 => only if Section 5 answered */}
       {isSection5Answered(answers) && (
-        <div className="section-block">
+        <div
+          className="section-block"
+          ref={(el) => (sectionRefs.current.section6 = el)}
+        >
           <h2 className="section-title">Section 6: Integrations</h2>
           <YesNoToggle
             label="Does the experience integrate with other systems (e.g., ChatGPT)?"
@@ -225,9 +271,11 @@ export default function Questions({ answers, updateAnswer }) {
         </div>
       )}
 
-      {/* SECTION 7 => only if Section 6 answered */}
       {isSection6Answered(answers) && (
-        <div className="section-block">
+        <div
+          className="section-block"
+          ref={(el) => (sectionRefs.current.section7 = el)}
+        >
           <h2 className="section-title">Section 7: Interaction</h2>
           <YesNoToggle
             label="Does it require complex interaction (objects respond to clicks, user position, etc.)?"
@@ -239,9 +287,11 @@ export default function Questions({ answers, updateAnswer }) {
         </div>
       )}
 
-      {/* SECTION 8 => only if Section 7 answered */}
       {isSection7Answered(answers) && (
-        <div className="section-block">
+        <div
+          className="section-block"
+          ref={(el) => (sectionRefs.current.section8 = el)}
+        >
           <h2 className="section-title">Section 8: Gamification</h2>
           <YesNoToggle
             label="Does it have a gamification element (score, click targets)?"
@@ -260,9 +310,11 @@ export default function Questions({ answers, updateAnswer }) {
         </div>
       )}
 
-      {/* SECTION 9 => only if Section 8 answered */}
       {isSection8Answered(answers) && (
-        <div className="section-block">
+        <div
+          className="section-block"
+          ref={(el) => (sectionRefs.current.section9 = el)}
+        >
           <h2 className="section-title">Section 9: Entry Point</h2>
           <p>Choose any that apply (None, QR, NFC):</p>
           <div className="flex gap-2 mt-2 flex-wrap">
@@ -339,6 +391,18 @@ export default function Questions({ answers, updateAnswer }) {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {areAllQuestionsAnswered() && (
+        <div className="md:hidden mt-8 pb-8 flex justify-center">
+          <button
+            onClick={() => setActivePanel('summary')}
+            className="px-6 py-3 bg-accent text-black rounded-lg font-semibold 
+                     shadow-lg hover:bg-opacity-90 transition-colors"
+          >
+            View Summary →
+          </button>
         </div>
       )}
     </div>
